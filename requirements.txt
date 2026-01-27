@@ -8,3 +8,4 @@ pytest
 mlflow
 pandas
 scikit-learn
+flake8

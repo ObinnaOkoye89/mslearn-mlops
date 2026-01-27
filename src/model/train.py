@@ -53,6 +53,10 @@ def split_data(df):
     X = df[feature_cols].values
     y = df["Diabetic"].values
 
+        
+    X = df[feature_cols].values
+    y = df["Diabetic"].values
+        
     # Split data (same parameters as notebook)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.30, random_state=0
@@ -79,6 +83,7 @@ def parse_args():
     return args
 
 
+# run script
 if __name__ == "__main__":
     print("\n\n")
     print("*" * 60)
