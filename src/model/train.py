@@ -16,7 +16,7 @@ import mlflow.sklearn
 # define functions
 def main(args):
     # TO DO: enable autologging
-    mlfow.sklearn.autolog()
+    mlflow.sklearn.autolog()
 
 
     # read data
