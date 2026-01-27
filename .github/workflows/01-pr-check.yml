@@ -6,13 +6,48 @@ on:
       - main
 
 jobs:
-  verify:
+  lint:
+    name: Linting
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Placeholder
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
         run: |
-          echo "Will add code checks here in the next challenge"
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
+      - name: Run Flake8
+        run: |
+          flake8 src/model
+
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
+      - name: Run Pytest
+        run: |
+          pytest tests/
