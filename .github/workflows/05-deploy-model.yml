@@ -1,0 +1,39 @@
+name: Deploy AML Model
+
+on:
+  workflow_dispatch:  # Allows manual trigger for deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Create or update online endpoint
+      run: |
+        # Create endpoint (if not exists)
+        az ml online-endpoint create --name diabetes-endpoint --resource-group MLOps --workspace-name diabetes-ml-ws || true
+
+    - name: Deploy latest model
+      run: |
+        # Get latest model version
+        MODEL_VERSION=$(az ml model show --name diabetes-classifier --workspace-name diabetes-ml-ws --resource-group MLOps --query "version" -o tsv)
+
+        # Deploy model to the endpoint
+        az ml online-deployment create \
+          --name diabetes-deployment \
+          --endpoint-name diabetes-endpoint \
+          --model diabetes-classifier:$MODEL_VERSION \
+          --instance-type Standard_DS3_v2 \
+          --instance-count 1 \
+          --resource-group MLOps \
+          --workspace-name diabetes-ml-ws \
+          --all-traffic
