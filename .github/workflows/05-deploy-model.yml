@@ -19,32 +19,68 @@ jobs:
 
     - name: Create or update online endpoint
       run: |
-        # Create endpoint (if not exists)
-        az ml online-endpoint create --name diabetes-endpoint --resource-group MLOps --workspace-name diabetes-ml-ws || true
+        ENDPOINT_NAME="diabetes-endpoint"
+        RESOURCE_GROUP="MLOps"
+        WORKSPACE="diabetes-ml-ws"
+
+        # Check if endpoint exists
+        if az ml online-endpoint show --name $ENDPOINT_NAME --resource-group $RESOURCE_GROUP --workspace-name $WORKSPACE &>/dev/null; then
+          echo "Endpoint exists, updating..."
+          az ml online-endpoint update \
+            --name $ENDPOINT_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --workspace-name $WORKSPACE \
+            --wait
+        else
+          echo "Endpoint does not exist, creating..."
+          az ml online-endpoint create \
+            --name $ENDPOINT_NAME \
+            --resource-group $RESOURCE_GROUP \
+            --workspace-name $WORKSPACE \
+            --wait
+        fi
 
     - name: Deploy latest model
       run: |
+        ENDPOINT_NAME="diabetes-endpoint"
+        DEPLOYMENT_NAME="diabetes-deployment"
+        RESOURCE_GROUP="MLOps"
+        WORKSPACE="diabetes-ml-ws"
+
+        # Get the latest model version
         MODEL_VERSION=$(az ml model list \
           --name diabetes-classifier \
-          --resource-group MLOps \
-          --workspace-name diabetes-ml-ws \
+          --resource-group $RESOURCE_GROUP \
+          --workspace-name $WORKSPACE \
           --query "max_by([], &version).version" \
           -o tsv)
-    
+
         echo "Latest model version: $MODEL_VERSION"
-    
+
         if [ -z "$MODEL_VERSION" ]; then
           echo "ERROR: No model versions found for 'diabetes-classifier'"
           exit 1
         fi
-    
-        # Replace version in YAML
+
+        # Replace version in deployment YAML
         sed -i "s/PLACEHOLDER/$MODEL_VERSION/" _deployment.yml
-    
+
         # Deploy using YAML
         az ml online-deployment create \
           --file _deployment.yml \
-          --resource-group MLOps \
-          --workspace-name diabetes-ml-ws \
+          --resource-group $RESOURCE_GROUP \
+          --workspace-name $WORKSPACE \
           --all-traffic
-             
+
+    - name: Test deployed endpoint
+      run: |
+        ENDPOINT_NAME="diabetes-endpoint"
+        RESOURCE_GROUP="MLOps"
+        WORKSPACE="diabetes-ml-ws"
+
+        echo "Testing endpoint..."
+        az ml online-endpoint invoke \
+          --name $ENDPOINT_NAME \
+          --resource-group $RESOURCE_GROUP \
+          --workspace-name $WORKSPACE \
+          --request-file test_input.json
