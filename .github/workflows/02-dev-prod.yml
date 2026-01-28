@@ -23,6 +23,8 @@ jobs:
       - name: Run AML experiment job
         run: |
           az ml job create --file src/job.yml \
+            --resource-group MLOps  \
+            --workspace-name diabetes-ml-ws \
             --set inputs.training_data=azureml:diabetes-dev-folder@latest \
             --stream
 
@@ -44,5 +46,7 @@ jobs:
       - name: Run AML production job
         run: |
           az ml job create --file src/job.yml \
+            --resource-group MLOps  \
+            --workspace-name diabetes-ml-ws  \
             --set inputs.training_data=azureml:diabetes-prod-folder@latest \
             --stream
