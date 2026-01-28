@@ -25,13 +25,26 @@ jobs:
     - name: Deploy latest model
       run: |
         # Get latest model version
-        # MODEL_VERSION=$(az ml model show --name diabetes-classifier --workspace-name diabetes-ml-ws --resource-group MLOps --query "version" -o tsv)
-
-        # Deploy model to the endpoint
+        MODEL_VERSION=$(az ml model list \
+          --name diabetes-classifier \
+          --resource-group MLOps \
+          --workspace-name diabetes-ml-ws \
+          --query "max_by([], &version).version" \
+          -o tsv)
+    
+        echo "Latest model version: $MODEL_VERSION"
+    
+        # Fail early if no model exists
+        if [ -z "$MODEL_VERSION" ]; then
+          echo "ERROR: No model versions found for 'diabetes-classifier'"
+          exit 1
+        fi
+    
+        # Deploy model
         az ml online-deployment create \
           --name diabetes-deployment \
           --endpoint-name diabetes-endpoint \
-          --model diabetes-classifier:latest \
+          --model diabetes-classifier:$MODEL_VERSION \
           --instance-type Standard_DS3_v2 \
           --instance-count 1 \
           --resource-group MLOps \
