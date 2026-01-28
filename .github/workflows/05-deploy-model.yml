@@ -25,13 +25,13 @@ jobs:
     - name: Deploy latest model
       run: |
         # Get latest model version
-        MODEL_VERSION=$(az ml model show --name diabetes-classifier --workspace-name diabetes-ml-ws --resource-group MLOps --query "version" -o tsv)
+        # MODEL_VERSION=$(az ml model show --name diabetes-classifier --workspace-name diabetes-ml-ws --resource-group MLOps --query "version" -o tsv)
 
         # Deploy model to the endpoint
         az ml online-deployment create \
           --name diabetes-deployment \
           --endpoint-name diabetes-endpoint \
-          --model diabetes-classifier:$MODEL_VERSION \
+          --model diabetes-classifier:latest \
           --instance-type Standard_DS3_v2 \
           --instance-count 1 \
           --resource-group MLOps \
