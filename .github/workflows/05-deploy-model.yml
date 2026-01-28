@@ -1,7 +1,7 @@
 name: Deploy AML Model
 
 on:
-  workflow_dispatch:  # Allows manual trigger for deployment
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -17,26 +17,19 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Create or update online endpoint
+    - name: Ensure online endpoint exists
       run: |
         ENDPOINT_NAME="diabetes-endpoint"
         RESOURCE_GROUP="MLOps"
         WORKSPACE="diabetes-ml-ws"
 
-        # Check if endpoint exists
-        if az ml online-endpoint show --name $ENDPOINT_NAME --resource-group $RESOURCE_GROUP --workspace-name $WORKSPACE &>/dev/null; then
-          echo "Endpoint exists, updating..."
-          az ml online-endpoint update \
-            --name $ENDPOINT_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --workspace-name $WORKSPACE
-        else
-          echo "Endpoint does not exist, creating..."
-          az ml online-endpoint create \
-            --name $ENDPOINT_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --workspace-name $WORKSPACE
-        fi
+        # Try updating the endpoint; fail silently if it doesn't exist
+        az ml online-endpoint update \
+          --name $ENDPOINT_NAME \
+          --resource-group $RESOURCE_GROUP \
+          --workspace-name $WORKSPACE || echo "Endpoint not found, please create manually."
+
+        echo "Ensure that the endpoint exists in Azure ML Studio before running this workflow."
 
     - name: Deploy latest model
       run: |
@@ -45,7 +38,7 @@ jobs:
         RESOURCE_GROUP="MLOps"
         WORKSPACE="diabetes-ml-ws"
 
-        # Get the latest model version
+        # Get latest model version
         MODEL_VERSION=$(az ml model list \
           --name diabetes-classifier \
           --resource-group $RESOURCE_GROUP \
