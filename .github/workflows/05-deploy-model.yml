@@ -39,11 +39,11 @@ jobs:
         fi
     
         # Replace version in YAML
-        sed -i "s/PLACEHOLDER/$MODEL_VERSION/" deployment.yml
+        sed -i "s/PLACEHOLDER/$MODEL_VERSION/" _deployment.yml
     
         # Deploy using YAML
         az ml online-deployment create \
-          --file deployment.yml \
+          --file _deployment.yml \
           --resource-group MLOps \
           --workspace-name diabetes-ml-ws \
           --all-traffic
