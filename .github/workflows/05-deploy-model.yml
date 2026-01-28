@@ -29,15 +29,13 @@ jobs:
           az ml online-endpoint update \
             --name $ENDPOINT_NAME \
             --resource-group $RESOURCE_GROUP \
-            --workspace-name $WORKSPACE \
-            --wait
+            --workspace-name $WORKSPACE
         else
           echo "Endpoint does not exist, creating..."
           az ml online-endpoint create \
             --name $ENDPOINT_NAME \
             --resource-group $RESOURCE_GROUP \
-            --workspace-name $WORKSPACE \
-            --wait
+            --workspace-name $WORKSPACE
         fi
 
     - name: Deploy latest model
